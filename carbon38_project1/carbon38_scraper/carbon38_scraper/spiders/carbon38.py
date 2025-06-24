@@ -75,4 +75,16 @@ class Carbon38Spider(scrapy.Spider):
             return next_url
         
         return None
-     
+    def parse_product(self, response):
+        """Parse individual product pages and extract data."""
+        
+        self.logger.info(f'Parsing product: {response.url}')
+        
+        item = ProductItem()
+        
+        # Extract breadcrumbs
+        breadcrumbs = response.css('.breadcrumb a::text, .breadcrumb span::text').getall()
+        if not breadcrumbs:
+            breadcrumbs = response.css('nav[aria-label="breadcrumb"] a::text').getall()
+        item['breadcrumbs'] = [b.strip() for b in breadcrumbs if b.strip()]
+         
