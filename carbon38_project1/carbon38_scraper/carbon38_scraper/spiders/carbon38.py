@@ -87,4 +87,34 @@ class Carbon38Spider(scrapy.Spider):
         if not breadcrumbs:
             breadcrumbs = response.css('nav[aria-label="breadcrumb"] a::text').getall()
         item['breadcrumbs'] = [b.strip() for b in breadcrumbs if b.strip()]
+        # Extract primary image URL
+        primary_image = response.css('.product__media img::attr(src)').get() or \
+                       response.css('.product-form__media img::attr(src)').get() or \
+                       response.css('img[class*="product"]::attr(src)').get()
+        
+        if primary_image:
+            if primary_image.startswith('//'):
+                primary_image = 'https:' + primary_image
+            elif primary_image.startswith('/'):
+                primary_image = urljoin(response.url, primary_image)
+            item['primary_image_url'] = primary_image
+        
+        # Extract brand from various sources
+        brand = response.css('.product__vendor::text').get() or \
+               response.css('[data-vendor]::text').get() or \
+               response.css('.product-meta__vendor::text').get()
+        
+        if not brand:
+            # Try to extract from JSON-LD structured data
+            json_ld = response.css('script[type="application/ld+json"]::text').getall()
+            for script in json_ld:
+                try:
+                    data = json.loads(script)
+                    if isinstance(data, dict) and 'brand' in data:
+                        brand = data['brand'].get('name', '')
+                        break
+                except:
+                    continue
+        
+        item['brand'] = brand.strip() if brand else self.extract_brand_from_breadcrumbs(item.get('breadcrumbs', []))
          
