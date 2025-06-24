@@ -59,3 +59,11 @@ class Carbon38Spider(scrapy.Spider):
                    response.css('a[rel="next"]::attr(href)').get()
         if next_link:
          return urljoin(response.url, next_link)
+        # Alternative: Look for numbered pagination
+        current_url = response.url
+        if '?page=' in current_url:
+            page_num = int(re.search(r'page=(\d+)', current_url).group(1))
+            next_page_num = page_num + 1
+        else:
+            next_page_num = 2
+     
