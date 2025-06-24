@@ -117,4 +117,91 @@ class Carbon38Spider(scrapy.Spider):
                     continue
         
         item['brand'] = brand.strip() if brand else self.extract_brand_from_breadcrumbs(item.get('breadcrumbs', []))
-         
+        # Extract product name
+        product_name = response.css('h1.product__title::text').get() or \
+                      response.css('.product-meta__title::text').get() or \
+                      response.css('h1[class*="product"]::text').get()
+        item['product_name'] = product_name.strip() if product_name else None
+        
+        # Extract price
+        price_text = response.css('.price__current .money::text').get() or \
+                    response.css('.product__price .money::text').get() or \
+                    response.css('[data-price]::text').get() or \
+                    response.css('.price .money::text').get()
+        
+        if price_text:
+            item['price'] = price_text.strip()
+        
+        # Extract reviews
+        reviews_text = response.css('.reviews-summary::text').get() or \
+                      response.css('[data-reviews-count]::text').get() or \
+                      response.css('.product-reviews__summary::text').get()
+        
+        if reviews_text:
+            item['reviews'] = reviews_text.strip()
+        else:
+            item['reviews'] = "0 Reviews"
+        
+        # Extract color/colour from variant selectors
+        color = response.css('.product-form__input input[name*="Color"] + label::text').get() or \
+               response.css('.product-form__input input[name*="color"] + label::text').get() or \
+               response.css('.color-swatch.selected::attr(data-value)').get() or \
+               response.css('.variant-input__color.selected::text').get()
+        
+        item['colour'] = color.strip() if color else None
+        
+        # Extract available sizes
+        sizes = response.css('.product-form__input input[name*="Size"] + label::text').getall() or \
+               response.css('.product-form__input input[name*="size"] + label::text').getall() or \
+               response.css('.size-selector .variant-input__radio + label::text').getall()
+        
+        item['sizes'] = [s.strip() for s in sizes if s.strip()]
+        
+        # Extract description
+        description_parts = response.css('.product__description p::text').getall() or \
+                           response.css('.product-single__description p::text').getall() or \
+                           response.css('.rte p::text').getall()
+        
+        if description_parts:
+            item['description'] = ' '.join(part.strip() for part in description_parts if part.strip())
+        else:
+            # Try getting from meta description or other sources
+            desc = response.css('.product__description::text').get() or \
+                  response.css('.product-single__description::text').get()
+            item['description'] = desc.strip() if desc else None
+        
+        # Extract SKU
+        sku = response.css('.product__sku::text').get() or \
+             response.css('[data-sku]::text').get() or \
+             response.css('.variant-sku::text').get()
+        
+        if sku:
+            item['sku'] = sku.strip()
+        else:
+            # Try to extract from JSON data
+            item['sku'] = self.extract_sku_from_json(response)
+        
+        # Extract product ID
+        product_id = self.extract_product_id(response)
+        item['product_id'] = product_id
+        
+        # Set product URL
+        item['product_url'] = response.url
+        
+        # Extract all image URLs
+        all_images = response.css('.product__media img::attr(src)').getall() or \
+                    response.css('.product-single__photos img::attr(src)').getall()
+        
+        processed_images = []
+        for img in all_images:
+            if img:
+                if img.startswith('//'):
+                    img = 'https:' + img
+                elif img.startswith('/'):
+                    img = urljoin(response.url, img)
+                processed_images.append(img)
+        
+        item['image_urls'] = processed_images
+        
+        yield item
+    
