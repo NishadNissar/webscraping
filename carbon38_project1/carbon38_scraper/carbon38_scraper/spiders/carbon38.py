@@ -212,7 +212,7 @@ class Carbon38Spider(scrapy.Spider):
             if crumb.upper() in known_brands:
                 return crumb.upper()
         return None
-    def extract_sku_from_json(self, response):
+    def extract_sku_from_json(self, response):  #sku mean stock keeping unit
         """Extract SKU from JSON product data."""
         
         scripts = response.css('script::text').getall()
@@ -227,4 +227,19 @@ class Carbon38Spider(scrapy.Spider):
                 except:
                     continue
         return None
+    def extract_product_id(self, response):
+        """Extract product ID from various sources."""
+        
+        # Try to get from URL
+        url_parts = response.url.split('/')
+        if url_parts and 'products' in url_parts:
+            product_index = url_parts.index('products')
+            if product_index + 1 < len(url_parts):
+                product_slug = url_parts[product_index + 1]
+                # Extract any trailing numbers
+                id_match = re.search(r'(\d+)$', product_slug)
+                if id_match:
+                    return id_match.group(1)
+                return product_slug
+        
     
