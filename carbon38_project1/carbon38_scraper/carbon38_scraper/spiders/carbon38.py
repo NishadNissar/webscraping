@@ -241,5 +241,19 @@ class Carbon38Spider(scrapy.Spider):
                 if id_match:
                     return id_match.group(1)
                 return product_slug
+        # Try to get from page data
+        product_id = response.css('[data-product-id]::attr(data-product-id)').get()
+        if product_id:
+            return product_id
         
+        # Try to extract from script tags (Shopify product JSON)
+        scripts = response.css('script::text').getall()
+        for script in scripts:
+            # Look for Shopify product ID
+            id_match = re.search(r'"product_id":\s*(\d+)', script) or \
+                      re.search(r'"id":\s*(\d+)', script)
+            if id_match:
+                return id_match.group(1)
+        
+        return None
     
