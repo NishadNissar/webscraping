@@ -50,4 +50,12 @@ class Carbon38Spider(scrapy.Spider):
         if next_page:
             self.logger.info(f'Following pagination to: {next_page}')
             yield response.follow(next_page, self.parse)
-    
+    def get_next_page_url(self, response):
+        """Extract the next page URL for Shopify pagination."""
+        
+        # Look for Shopify pagination
+        next_link = response.css('a[aria-label="Next"]::attr(href)').get() or \
+                   response.css('a.pagination__next::attr(href)').get() or \
+                   response.css('a[rel="next"]::attr(href)').get()
+        if next_link:
+         return urljoin(response.url, next_link)
