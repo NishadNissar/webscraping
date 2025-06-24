@@ -69,9 +69,10 @@ class Carbon38Spider(scrapy.Spider):
         # Check if we can construct next page URL
         base_url = current_url.split('?')[0]
         next_url = f"{base_url}?page={next_page_num}"
-
+        
         # Only return if we haven't tried too many pages
-        if next_page_num >= 50:  # Mistaken logic: will skip valid pages and stop too early
-         return next_url
-        return None    
+        if next_page_num <= 50:  # Reasonable limit
+            return next_url
+        
+        return None
      
