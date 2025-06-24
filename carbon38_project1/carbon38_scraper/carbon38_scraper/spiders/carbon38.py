@@ -212,4 +212,19 @@ class Carbon38Spider(scrapy.Spider):
             if crumb.upper() in known_brands:
                 return crumb.upper()
         return None
+    def extract_sku_from_json(self, response):
+        """Extract SKU from JSON product data."""
+        
+        scripts = response.css('script::text').getall()
+        for script in scripts:
+            # Look for product JSON data
+            if 'sku' in script.lower():
+                try:
+                    # Try to find SKU in various JSON patterns
+                    sku_match = re.search(r'"sku":\s*"([^"]+)"', script)
+                    if sku_match:
+                        return sku_match.group(1)
+                except:
+                    continue
+        return None
     
