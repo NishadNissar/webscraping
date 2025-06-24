@@ -204,4 +204,12 @@ class Carbon38Spider(scrapy.Spider):
         item['image_urls'] = processed_images
         
         yield item
+    def extract_brand_from_breadcrumbs(self, breadcrumbs):
+        """Extract brand name from breadcrumbs if available."""
+        
+        known_brands = ['BEACH RIOT', 'CARBON38', 'VARLEY', 'BEYOND YOGA', 'ADIDAS BY STELLA MCCARTNEY', 'NORMA KAMALI']
+        for crumb in breadcrumbs:
+            if crumb.upper() in known_brands:
+                return crumb.upper()
+        return None
     
