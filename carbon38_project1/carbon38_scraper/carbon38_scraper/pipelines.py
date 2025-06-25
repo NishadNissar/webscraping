@@ -55,7 +55,25 @@ class ProductCleanerPipeline:
                 adapter[field] = cleaned if cleaned else None
             else:
                 adapter[field] = None    
-
+         # Ensure URLs are properly formatted
+        url_fields = ['primary_image_url', 'product_url']
+        for field in url_fields:
+            if adapter.get(field):
+                url = str(adapter[field]).strip()
+                if url and not url.startswith('http'):
+                    if url.startswith('//'):
+                        adapter[field] = 'https:' + url
+                    else:
+                        adapter[field] = 'https://' + url
+                else:
+                    adapter[field] = url if url else None
+            else:
+                adapter[field] = None
+        
+        # Add timestamp
+        adapter['scraped_at'] = datetime.now().isoformat()
+        
+        return item
 class CSVExportPipeline:
     #Export items to CSV file.
     
@@ -63,38 +81,47 @@ class CSVExportPipeline:
         self.file = None
         self.writer = None
         self.items_count = 0
-    
+        self.fieldnames = [
+            'product_name', 'brand', 'price', 'sku', 'product_id',
+            'description', 'reviews', 'colour', 'sizes', 'breadcrumbs',
+            'primary_image_url', 'image_urls', 'product_url', 'scraped_at'
+        ]
     def open_spider(self, spider):
         os.makedirs('data', exist_ok=True)
         self.file = open('data/products.csv', 'w', newline='', encoding='utf-8')
-        self.writer = csv.DictWriter(
-            self.file,
-            fieldnames=[
-                'breadcrumbs', 'primary_image_url', 'brand', 'product_name',
-                'price', 'reviews', 'colour', 'sizes', 'description', 'sku',
-                'product_id', 'product_url', 'image_urls', 'scraped_at'
-            ]
-        )
+        self.writer = csv.DictWriter(self.file,fieldnames=self.fieldnames)
         self.writer.writeheader()
+        spider.logger.info("CSV export pipeline opened")
     def close_spider(self, spider):
         if self.file:
             self.file.close()
         spider.logger.info(f'Exported {self.items_count} items to CSV')
     
     def process_item(self, item, spider):
-        adapter = ItemAdapter(item)
-        
-        # Convert lists to strings for CSV
-        row = {}
-        for key, value in adapter.asdict().items():
-            if isinstance(value, list):
-                row[key] = '|'.join(str(v) for v in value)
-            else:
-                row[key] = value
-        
-        self.writer.writerow(row)
-        self.items_count += 1
-        return item    
+        try:
+            adapter = ItemAdapter(item)
+            
+            # Convert lists to pipe-separated strings for CSV
+            row = {}
+            for key in self.fieldnames:
+                value = adapter.get(key)
+                if isinstance(value, list):
+                    row[key] = '|'.join(str(v) for v in value if v)
+                elif value is not None:
+                    row[key] = str(value)
+                else:
+                    row[key] = ''
+            
+            self.writer.writerow(row)
+            self.items_count += 1
+            
+            if self.items_count % 10 == 0:
+                spider.logger.info(f"Exported {self.items_count} items to CSV")
+                
+        except Exception as e:
+            spider.logger.error(f"Error writing item to CSV: {e}")
+            
+        return item   
 class JSONExportPipeline:
     def open_spider(self, spider):
         self.file = open('products.json', 'w', encoding='utf-8')
