@@ -123,90 +123,129 @@ class CSVExportPipeline:
             
         return item   
 class JSONExportPipeline:
-    def open_spider(self, spider):
-        self.file = open('products.json', 'w', encoding='utf-8')
-        self.items = []    
-    def process_item(self, item, spider):
-        self.items.append(dict(item))
-        return item
-
-    def close_spider(self, spider):
-        json.dump(self.items, self.file, indent=4)
-        self.file.close()
-class JSONExportPipeline:
-    #Export items to JSON file.
-    
     def __init__(self):
         self.file = None
-        self.items = []     
+        self.items = [] 
     def open_spider(self, spider):
         os.makedirs('data', exist_ok=True)
         self.file = open('data/products.json', 'w', encoding='utf-8')
+        spider.logger.info("JSON export pipeline opened")
+    
+
     def close_spider(self, spider):
         if self.file:
-            json.dump(self.items, self.file, indent=2, ensure_ascii=False)
-            self.file.close()
-        spider.logger.info(f'Exported {len(self.items)} items to JSON')
+            try:
+                json.dump(self.items, self.file, indent=2, ensure_ascii=False)
+                self.file.close()
+                spider.logger.info(f'Exported {len(self.items)} items to JSON')
+            except Exception as e:
+                spider.logger.error(f"Error writing JSON file: {e}")
     def process_item(self, item, spider):
-        self.items.append(ItemAdapter(item).asdict())
-        return item    
+        try:
+            # Convert item to dict and clean it
+            item_dict = ItemAdapter(item).asdict()
+            
+            # Ensure all values are JSON serializable
+            cleaned_item = {}
+            for key, value in item_dict.items():
+                if value is not None:
+                    cleaned_item[key] = value
+                else:
+                    cleaned_item[key] = None
+            
+            self.items.append(cleaned_item)
+            
+            if len(self.items) % 10 == 0:
+                spider.logger.info(f"Collected {len(self.items)} items for JSON export")
+                
+        except Exception as e:
+            spider.logger.error(f"Error processing item for JSON: {e}")
+            
+        return item
+
+    
 class DatabasePipeline:
     """Store items in SQLite database."""
     
     def __init__(self):
         self.connection = None
         self.cursor = None
+        self.items_count = 0
     def open_spider(self, spider):
-        os.makedirs('database', exist_ok=True)
-        self.connection = sqlite3.connect('database/products.db')
-        self.cursor = self.connection.cursor()
-        # Create table
-        self.cursor.execute('''
-            CREATE TABLE IF NOT EXISTS products (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                breadcrumbs TEXT,
-                primary_image_url TEXT,
-                brand TEXT,
-                product_name TEXT,
-                price REAL,
-                reviews INTEGER,
-                colour TEXT,
-                sizes TEXT,
-                description TEXT,
-                sku TEXT,
-                product_id TEXT,
-                product_url TEXT,
-                image_urls TEXT,
-                scraped_at TEXT
-            )
-        ''')
-        self.connection.commit()        
+        try:
+            os.makedirs('database', exist_ok=True)
+            self.connection = sqlite3.connect('database/products.db')
+            self.cursor = self.connection.cursor()
+            
+            # Create table with better schema
+            self.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS products (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_name TEXT,
+                    brand TEXT,
+                    price REAL,
+                    sku TEXT,
+                    product_id TEXT UNIQUE,
+                    description TEXT,
+                    reviews INTEGER,
+                    colour TEXT,
+                    sizes TEXT,
+                    breadcrumbs TEXT,
+                    primary_image_url TEXT,
+                    image_urls TEXT,
+                    product_url TEXT UNIQUE,
+                    scraped_at TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_product_id ON products(product_id)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_brand ON products(brand)')
+            self.cursor.execute('CREATE INDEX IF NOT EXISTS idx_price ON products(price)')
+            
+            self.connection.commit()
+            spider.logger.info("Database pipeline opened and tables created")
+            
+        except Exception as e:
+            spider.logger.error(f"Error setting up database: {e}")
+    
+              
     def close_spider(self, spider):
         if self.connection:
-            self.connection.close() 
+            self.connection.close()
+            spider.logger.info(f'Database pipeline closed. Stored {self.items_count} items')
     def process_item(self, item, spider):
-        adapter = ItemAdapter(item)
+        try:
+            adapter = ItemAdapter(item)
+            
+            # Convert lists to JSON strings for database storage
+            data = {}
+            for key, value in adapter.asdict().items():
+                if isinstance(value, list):
+                    data[key] = json.dumps(value) if value else '[]'
+                else:
+                    data[key] = value
+                        
+            self.cursor.execute('''
+            INSERT OR REPLACE INTO products ( 
+                    product_name, brand, price, sku, product_id,
+                    description, reviews, colour, sizes, breadcrumbs,
+                    primary_image_url, image_urls, product_url, scraped_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                data.get('product_name'), data.get('brand'), data.get('price'),
+                data.get('sku'), data.get('product_id'), data.get('description'),
+                data.get('reviews'), data.get('colour'), data.get('sizes'),
+                data.get('breadcrumbs'), data.get('primary_image_url'),
+                data.get('image_urls'), data.get('product_url'), data.get('scraped_at')
+            ))
         
-        # Convert lists to JSON strings for database storage
-        data = {}
-        for key, value in adapter.asdict().items():
-            if isinstance(value, list):
-                data[key] = json.dumps(value)
-            else:
-                data[key] = value              
-        self.cursor.execute('''
-            INSERT INTO products ( 
-                breadcrumbs, primary_image_url, brand, product_name, price,
-                reviews, colour, sizes, description, sku, product_id,
-                product_url, image_urls, scraped_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            data.get('breadcrumbs'), data.get('primary_image_url'),
-            data.get('brand'), data.get('product_name'), data.get('price'),
-            data.get('reviews'), data.get('colour'), data.get('sizes'),
-            data.get('description'), data.get('sku'), data.get('product_id'),
-            data.get('product_url'), data.get('image_urls'), data.get('scraped_at')
-        ))
-        
-        self.connection.commit()
-        return item                
+            self.connection.commit()
+            self.items_count += 1
+            
+            if self.items_count % 10 == 0:
+                spider.logger.info(f"Stored {self.items_count} items in database")
+                
+        except Exception as e:
+            spider.logger.error(f"Error storing item in database: {e}")
+            
+        return item
