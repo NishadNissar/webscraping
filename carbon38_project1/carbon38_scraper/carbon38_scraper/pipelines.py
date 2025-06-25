@@ -108,4 +108,63 @@ class JSONExportPipeline:
     def process_item(self, item, spider):
         self.items.append(ItemAdapter(item).asdict())
         return item    
-           
+class DatabasePipeline:
+    """Store items in SQLite database."""
+    
+    def __init__(self):
+        self.connection = None
+        self.cursor = None
+    def open_spider(self, spider):
+        os.makedirs('database', exist_ok=True)
+        self.connection = sqlite3.connect('database/products.db')
+        self.cursor = self.connection.cursor()
+        # Create table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS products (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                breadcrumbs TEXT,
+                primary_image_url TEXT,
+                brand TEXT,
+                product_name TEXT,
+                price REAL,
+                reviews INTEGER,
+                colour TEXT,
+                sizes TEXT,
+                description TEXT,
+                sku TEXT,
+                product_id TEXT,
+                product_url TEXT,
+                image_urls TEXT,
+                scraped_at TEXT
+            )
+        ''')
+        self.connection.commit()        
+    def close_spider(self, spider):
+        if self.connection:
+            self.connection.close() 
+    def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
+        
+        # Convert lists to JSON strings for database storage
+        data = {}
+        for key, value in adapter.asdict().items():
+            if isinstance(value, list):
+                data[key] = json.dumps(value)
+            else:
+                data[key] = value              
+        self.cursor.execute('''
+            INSERT INTO products ( 
+                breadcrumbs, primary_image_url, brand, product_name, price,
+                reviews, colour, sizes, description, sku, product_id,
+                product_url, image_urls, scraped_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            data.get('breadcrumbs'), data.get('primary_image_url'),
+            data.get('brand'), data.get('product_name'), data.get('price'),
+            data.get('reviews'), data.get('colour'), data.get('sizes'),
+            data.get('description'), data.get('sku'), data.get('product_id'),
+            data.get('product_url'), data.get('image_urls'), data.get('scraped_at')
+        ))
+        
+        self.connection.commit()
+        return item                
