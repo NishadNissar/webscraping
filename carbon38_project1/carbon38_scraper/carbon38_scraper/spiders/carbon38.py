@@ -365,3 +365,18 @@ class Carbon38Spider(scrapy.Spider):
             return img_url
         else:
             return urljoin(base_url, img_url)
+    def extract_sku(self, response):
+        """Extract SKU from various sources."""
+        
+        sku = self.extract_text_with_fallbacks(response, [
+            '.product__sku::text',
+            '[data-sku]::text',
+            '.variant-sku::text',
+            '.product-sku::text'
+        ])
+        
+        if sku:
+            return sku
+        
+        # Try to extract from JSON data
+        return self.extract_sku_from_json(response)
