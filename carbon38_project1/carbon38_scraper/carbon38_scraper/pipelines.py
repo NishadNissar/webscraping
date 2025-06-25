@@ -11,35 +11,50 @@ class ProductCleanerPipeline:
         
         # Clean price - remove currency symbols and convert to float
         if adapter.get('price'):
-            price = adapter['price'].replace('$', '').replace(',', '')
+            price = adapter['price']
+            # Remove currency symbols and extra whitespace
+            price = re.sub(r'[^\d.,]', '', str(price))
+            # Handle different decimal separators
+            price = price.replace(',', '')
             try:
-                adapter['price'] = float(price)
+                adapter['price'] = float(price) if price else 0.0
             except ValueError:
+                spider.logger.warning(f"Could not parse price: {adapter['price']}")
                 adapter['price'] = 0.0
+        else:
+            adapter['price'] = 0.0
       # Clean reviews - extract number
         if adapter.get('reviews'):
-            reviews_text = adapter['reviews']
-            if 'Reviews' in reviews_text:
-                try:
-                    adapter['reviews'] = int(reviews_text.split()[0])
-                except (ValueError, IndexError):
-                    adapter['reviews'] = 0
+            reviews_text = str(adapter['reviews'])
+            # Extract number from reviews text
+            review_match = re.search(r'(\d+)', reviews_text)
+            if review_match:
+                adapter['reviews'] = int(review_match.group(1))
             else:
                 adapter['reviews'] = 0
-        # Ensure lists are properly formatted
-        if adapter.get('breadcrumbs') and isinstance(adapter['breadcrumbs'], str):
-            adapter['breadcrumbs'] = [adapter['breadcrumbs']]
+        else:
+            adapter['reviews'] = 0
+         # Ensure lists are properly formatted
+        for field in ['breadcrumbs', 'sizes', 'image_urls']:
+            if adapter.get(field):
+                if isinstance(adapter[field], str):
+                    # If it's a string, convert to list
+                    adapter[field] = [adapter[field]]
+                elif not isinstance(adapter[field], list):
+                    # If it's neither string nor list, convert to string then list
+                    adapter[field] = [str(adapter[field])]
+            else:
+                adapter[field] = []
         
-        if adapter.get('sizes') and isinstance(adapter['sizes'], str):
-            adapter['sizes'] = [adapter['sizes']]
-        
-        if adapter.get('image_urls') and isinstance(adapter['image_urls'], str):
-            adapter['image_urls'] = [adapter['image_urls']]
-        
-         # Add timestamp
-        adapter['scraped_at'] = datetime.now().isoformat()
-        
-        return item
+         # Clean text fields
+        text_fields = ['product_name', 'brand', 'description', 'colour', 'sku', 'product_id']
+        for field in text_fields:
+            if adapter.get(field):
+                # Clean up whitespace and newlines
+                cleaned = re.sub(r'\s+', ' ', str(adapter[field])).strip()
+                adapter[field] = cleaned if cleaned else None
+            else:
+                adapter[field] = None    
 
 class CSVExportPipeline:
     #Export items to CSV file.
