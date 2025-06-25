@@ -26,29 +26,60 @@ class ProductCleanerPipeline:
                     adapter['reviews'] = 0
             else:
                 adapter['reviews'] = 0
-        # Extract just the number from review text
-        if item.get('reviews'):
-            match = re.search(r'\d+', item['reviews'])
-            item['reviews'] = match.group(0) if match else '0'
-         # Remove empty sizes
-        if item.get('sizes'):
-            item['sizes'] = [s.strip() for s in item['sizes'] if s.strip()]
-
-        # Clean color
-        if item.get('colour'):
-            item['colour'] = item['colour'].strip().title()
-
+        # Ensure lists are properly formatted
+        if adapter.get('breadcrumbs') and isinstance(adapter['breadcrumbs'], str):
+            adapter['breadcrumbs'] = [adapter['breadcrumbs']]
+        
+        if adapter.get('sizes') and isinstance(adapter['sizes'], str):
+            adapter['sizes'] = [adapter['sizes']]
+        
+        if adapter.get('image_urls') and isinstance(adapter['image_urls'], str):
+            adapter['image_urls'] = [adapter['image_urls']]
+        
+         # Add timestamp
+        adapter['scraped_at'] = datetime.now().isoformat()
+        
         return item
+
 class CSVExportPipeline:
+    #Export items to CSV file.
+    
+    def __init__(self):
+        self.file = None
+        self.writer = None
+        self.items_count = 0
+    
     def open_spider(self, spider):
-        self.file = open('products.csv', 'w', newline='', encoding='utf-8')
-        self.exporter = csv.DictWriter(self.file, fieldnames=spider.fields_to_export)
-        self.exporter.writeheader()
-    def process_item(self, item, spider):
-        self.exporter.writerow({k: item.get(k, '') for k in spider.fields_to_export})
-        return item
+        os.makedirs('data', exist_ok=True)
+        self.file = open('data/products.csv', 'w', newline='', encoding='utf-8')
+        self.writer = csv.DictWriter(
+            self.file,
+            fieldnames=[
+                'breadcrumbs', 'primary_image_url', 'brand', 'product_name',
+                'price', 'reviews', 'colour', 'sizes', 'description', 'sku',
+                'product_id', 'product_url', 'image_urls', 'scraped_at'
+            ]
+        )
+        self.writer.writeheader()
     def close_spider(self, spider):
-        self.file.close()
+        if self.file:
+            self.file.close()
+        spider.logger.info(f'Exported {self.items_count} items to CSV')
+    
+    def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
+        
+        # Convert lists to strings for CSV
+        row = {}
+        for key, value in adapter.asdict().items():
+            if isinstance(value, list):
+                row[key] = '|'.join(str(v) for v in value)
+            else:
+                row[key] = value
+        
+        self.writer.writerow(row)
+        self.items_count += 1
+        return item    
 class JSONExportPipeline:
     def open_spider(self, spider):
         self.file = open('products.json', 'w', encoding='utf-8')
@@ -60,3 +91,21 @@ class JSONExportPipeline:
     def close_spider(self, spider):
         json.dump(self.items, self.file, indent=4)
         self.file.close()
+class JSONExportPipeline:
+    #Export items to JSON file.
+    
+    def __init__(self):
+        self.file = None
+        self.items = []     
+    def open_spider(self, spider):
+        os.makedirs('data', exist_ok=True)
+        self.file = open('data/products.json', 'w', encoding='utf-8')
+    def close_spider(self, spider):
+        if self.file:
+            json.dump(self.items, self.file, indent=2, ensure_ascii=False)
+            self.file.close()
+        spider.logger.info(f'Exported {len(self.items)} items to JSON')
+    def process_item(self, item, spider):
+        self.items.append(ItemAdapter(item).asdict())
+        return item    
+           
