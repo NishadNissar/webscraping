@@ -336,3 +336,19 @@ class Carbon38Spider(scrapy.Spider):
             return self.clean_image_url(primary_image, response.url)
         
         return None
+    def extract_all_images(self, response):
+        """Extract all product images."""
+        
+        all_images = response.css('.product__media img::attr(src)').getall() or \
+                    response.css('.product-single__photos img::attr(src)').getall() or \
+                    response.css('.product-photos img::attr(src)').getall() or \
+                    response.css('.product-images img::attr(src)').getall()
+        
+        processed_images = []
+        for img in all_images:
+            if img:
+                clean_url = self.clean_image_url(img, response.url)
+                if clean_url and clean_url not in processed_images:
+                    processed_images.append(clean_url)
+        
+        return processed_images
