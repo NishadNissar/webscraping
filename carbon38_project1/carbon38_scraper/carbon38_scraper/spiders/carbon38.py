@@ -380,3 +380,16 @@ class Carbon38Spider(scrapy.Spider):
         
         # Try to extract from JSON data
         return self.extract_sku_from_json(response)
+    def extract_sku_from_json(self, response):
+        """Extract SKU from JSON product data."""
+        
+        scripts = response.css('script::text').getall()
+        for script in scripts:
+            if 'sku' in script.lower():
+                try:
+                    sku_match = re.search(r'"sku":\s*"([^"]+)"', script, re.IGNORECASE)
+                    if sku_match:
+                        return sku_match.group(1)
+                except:
+                    continue
+        return None
