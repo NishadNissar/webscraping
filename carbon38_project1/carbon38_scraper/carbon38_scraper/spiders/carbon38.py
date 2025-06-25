@@ -393,3 +393,39 @@ class Carbon38Spider(scrapy.Spider):
                 except:
                     continue
         return None
+    def extract_product_id(self, response):
+        """Extract product ID from various sources."""
+        
+        # Try data attributes first
+        product_id = response.css('[data-product-id]::attr(data-product-id)').get()
+        if product_id:
+            return product_id
+        
+        # Try to get from URL
+        url_parts = response.url.split('/')
+        if 'products' in url_parts:
+            try:
+                product_index = url_parts.index('products')
+                if product_index + 1 < len(url_parts):
+                    product_slug = url_parts[product_index + 1].split('?')[0]  # Remove query params
+                    return product_slug
+            except:
+                pass
+        
+        # Try to extract from script tags
+        scripts = response.css('script::text').getall()
+        for script in scripts:
+            # Look for various ID patterns
+            id_patterns = [
+                r'"product_id":\s*(\d+)',
+                r'"id":\s*(\d+)',
+                r'"productId":\s*"([^"]+)"',
+                r'"handle":\s*"([^"]+)"'
+            ]
+            
+            for pattern in id_patterns:
+                id_match = re.search(pattern, script)
+                if id_match:
+                    return id_match.group(1)
+        
+        return None
