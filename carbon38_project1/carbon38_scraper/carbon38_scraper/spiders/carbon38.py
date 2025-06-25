@@ -39,18 +39,30 @@ class Carbon38Spider(scrapy.Spider):
     # it to 4 requests at a time to avoid overloading the website or getting blocked.
     custom_settings=   {
         'DOWNLOAD_DELAY': 2,
+        'RANDOMIZE_DOWNLOAD_DELAY': 0.5,
         'CONCURRENT_REQUESTS': 4,
     }
+    def __init__(self, *args, **kwargs):
+        super(Carbon38Spider, self).__init__(*args, **kwargs)
+        self.scraped_urls = set()
+        self.item_count = 0
+        self.max_items = 5000  # Target around 4000-5000 items
     #This part of the code looks at the shopping category page finds all the product links on it, and 
     # then shows how many products it found    
     def parse(self, response):
         self.logger.info(f'Parsing listing page: {response.url}')
         product_links = response.css('a[href*="/products/"]::attr(href)').getall()
-        self.logger.info(f'Found {len(product_links)} product links on page')
+        # self.logger.info(f'Found {len(product_links)} product links on page')
     #    Stop spider if no products are found (end of pagination)
-    #     if not product_links:
-    #      self.logger.info("No products found — stopping pagination.")
-    #      return
+        if not product_links:
+            product_links = response.css('.ProductItem a::attr(href)').getall()
+        if not product_links:
+            product_links = response.css('.product-item a::attr(href)').getall()
+        if not product_links:
+            product_links = response.css('[data-product-handle] a::attr(href)').getall()
+            
+        self.logger.info(f'Found {len(product_links)} product links on page')
+        
         for link in product_links:
             full_url = urljoin(response.url, link)
             yield response.follow(full_url, self.parse_product)
@@ -66,7 +78,8 @@ class Carbon38Spider(scrapy.Spider):
         # Look for Shopify pagination
         next_link = response.css('a[aria-label="Next"]::attr(href)').get() or \
                    response.css('a.pagination__next::attr(href)').get() or \
-                   response.css('a[rel="next"]::attr(href)').get()
+                   response.css('a[rel="next"]::attr(href)').get() or \
+                   response.css('.pagination a:contains("Next")::attr(href)').get()
         if next_link:
          return urljoin(response.url, next_link)
         # Alternative: Look for numbered pagination
@@ -92,104 +105,63 @@ class Carbon38Spider(scrapy.Spider):
         
         item = ProductItem()
         
-        # Extract breadcrumbs
-        breadcrumbs = response.css('.breadcrumb a::text, .breadcrumb span::text').getall()
-        if not breadcrumbs:
-            breadcrumbs = response.css('nav[aria-label="breadcrumb"] a::text').getall()
-        item['breadcrumbs'] = [b.strip() for b in breadcrumbs if b.strip()]
-        # Extract primary image URL
-        primary_image = response.css('.product__media img::attr(src)').get() or \
-                       response.css('.product-form__media img::attr(src)').get() or \
-                       response.css('img[class*="product"]::attr(src)').get()
+       # Extract product name with multiple selectors
+        product_name = self.extract_text_with_fallbacks(response, [
+            'h1.product__title::text',
+            '.product-meta__title::text',
+            'h1[class*="product"]::text',
+            '.product-single__title::text',
+            'h1::text'
+        ])
+        item['product_name'] = product_name
         
-        if primary_image:
-            if primary_image.startswith('//'):
-                primary_image = 'https:' + primary_image
-            elif primary_image.startswith('/'):
-                primary_image = urljoin(response.url, primary_image)
-            item['primary_image_url'] = primary_image
+        # Extract brand with multiple approaches
+        brand = self.extract_brand(response)
+        item['brand'] = brand
         
-        # Extract brand from various sources
-        brand = response.css('.product__vendor::text').get() or \
-               response.css('[data-vendor]::text').get() or \
-               response.css('.product-meta__vendor::text').get()
+        # Extract price with multiple selectors
+        price_text = self.extract_text_with_fallbacks(response, [
+            '.price__current .money::text',
+            '.product__price .money::text',
+            '[data-price]::text',
+            '.price .money::text',
+            '.product-price .money::text',
+            '.price-item--regular::text',
+            '.price-item::text'
+        ])
+        item['price'] = price_text
         
-        if not brand:
-            # Try to extract from JSON-LD structured data
-            json_ld = response.css('script[type="application/ld+json"]::text').getall()
-            for script in json_ld:
-                try:
-                    data = json.loads(script)
-                    if isinstance(data, dict) and 'brand' in data:
-                        brand = data['brand'].get('name', '')
-                        break
-                except:
-                    continue
-        
-        item['brand'] = brand.strip() if brand else self.extract_brand_from_breadcrumbs(item.get('breadcrumbs', []))
-        # Extract product name
-        product_name = response.css('h1.product__title::text').get() or \
-                      response.css('.product-meta__title::text').get() or \
-                      response.css('h1[class*="product"]::text').get()
-        item['product_name'] = product_name.strip() if product_name else None
-        
-        # Extract price
-        price_text = response.css('.price__current .money::text').get() or \
-                    response.css('.product__price .money::text').get() or \
-                    response.css('[data-price]::text').get() or \
-                    response.css('.price .money::text').get()
-        
-        if price_text:
-            item['price'] = price_text.strip()
+        # Extract description with better logic
+        description = self.extract_description(response)
+        item['description'] = description
         
         # Extract reviews
-        reviews_text = response.css('.reviews-summary::text').get() or \
-                      response.css('[data-reviews-count]::text').get() or \
-                      response.css('.product-reviews__summary::text').get()
+        reviews = self.extract_reviews(response)
+        item['reviews'] = reviews
         
-        if reviews_text:
-            item['reviews'] = reviews_text.strip()
-        else:
-            item['reviews'] = "0 Reviews"
+        # Extract color/colour
+        colour = self.extract_colour(response)
+        item['colour'] = colour
         
-        # Extract color/colour from variant selectors
-        color = response.css('.product-form__input input[name*="Color"] + label::text').get() or \
-               response.css('.product-form__input input[name*="color"] + label::text').get() or \
-               response.css('.color-swatch.selected::attr(data-value)').get() or \
-               response.css('.variant-input__color.selected::text').get()
+        # Extract sizes
+        sizes = self.extract_sizes(response)
+        item['sizes'] = sizes
         
-        item['colour'] = color.strip() if color else None
+        # Extract breadcrumbs
+        breadcrumbs = self.extract_breadcrumbs(response)
+        item['breadcrumbs'] = breadcrumbs
         
-        # Extract available sizes
-        sizes = response.css('.product-form__input input[name*="Size"] + label::text').getall() or \
-               response.css('.product-form__input input[name*="size"] + label::text').getall() or \
-               response.css('.size-selector .variant-input__radio + label::text').getall()
+        # Extract primary image
+        primary_image = self.extract_primary_image(response)
+        item['primary_image_url'] = primary_image
         
-        item['sizes'] = [s.strip() for s in sizes if s.strip()]
-        
-        # Extract description
-        description_parts = response.css('.product__description p::text').getall() or \
-                           response.css('.product-single__description p::text').getall() or \
-                           response.css('.rte p::text').getall()
-        
-        if description_parts:
-            item['description'] = ' '.join(part.strip() for part in description_parts if part.strip())
-        else:
-            # Try getting from meta description or other sources
-            desc = response.css('.product__description::text').get() or \
-                  response.css('.product-single__description::text').get()
-            item['description'] = desc.strip() if desc else None
+        # Extract all images
+        all_images = self.extract_all_images(response)
+        item['image_urls'] = all_images
         
         # Extract SKU
-        sku = response.css('.product__sku::text').get() or \
-             response.css('[data-sku]::text').get() or \
-             response.css('.variant-sku::text').get()
-        
-        if sku:
-            item['sku'] = sku.strip()
-        else:
-            # Try to extract from JSON data
-            item['sku'] = self.extract_sku_from_json(response)
+        sku = self.extract_sku(response)
+        item['sku'] = sku
         
         # Extract product ID
         product_id = self.extract_product_id(response)
@@ -198,29 +170,48 @@ class Carbon38Spider(scrapy.Spider):
         # Set product URL
         item['product_url'] = response.url
         
-        # Extract all image URLs
-        all_images = response.css('.product__media img::attr(src)').getall() or \
-                    response.css('.product-single__photos img::attr(src)').getall()
-        
-        processed_images = []
-        for img in all_images:
-            if img:
-                if img.startswith('//'):
-                    img = 'https:' + img
-                elif img.startswith('/'):
-                    img = urljoin(response.url, img)
-                processed_images.append(img)
-        
-        item['image_urls'] = processed_images
-        
         yield item
-    def extract_brand_from_breadcrumbs(self, breadcrumbs):
-        """Extract brand name from breadcrumbs if available."""
+    def extract_text_with_fallbacks(self, response, selectors):
+         """Try multiple selectors and return the first non-empty result."""
+         for selector in selectors:
+            text = response.css(selector).get()
+            if text and text.strip():
+                return text.strip()
+         return None
+    def extract_brand(self, response):
+        """Extract brand from various sources."""
         
-        known_brands = ['BEACH RIOT', 'CARBON38', 'VARLEY', 'BEYOND YOGA', 'ADIDAS BY STELLA MCCARTNEY', 'NORMA KAMALI']
-        for crumb in breadcrumbs:
-            if crumb.upper() in known_brands:
-                return crumb.upper()
+        # Try multiple selectors
+        brand = self.extract_text_with_fallbacks(response, [
+            '.product__vendor::text',
+            '[data-vendor]::text',
+            '.product-meta__vendor::text',
+            '.product-brand::text',
+            '.brand-name::text'
+        ])
+        
+        if brand:
+            return brand
+        
+        # Try JSON-LD structured data
+        json_ld_scripts = response.css('script[type="application/ld+json"]::text').getall()
+        for script in json_ld_scripts:
+            try:
+                data = json.loads(script)
+                if isinstance(data, dict) and 'brand' in data:
+                    brand_data = data['brand']
+                    if isinstance(brand_data, dict):
+                        return brand_data.get('name', '')
+                    else:
+                        return str(brand_data)
+            except (json.JSONDecodeError, KeyError):
+                continue
+        
+        # Try to extract from breadcrumbs
+        breadcrumbs = self.extract_breadcrumbs(response)
+        if breadcrumbs:
+            return self.extract_brand_from_breadcrumbs(breadcrumbs)
+        
         return None
     def extract_sku_from_json(self, response):  #sku mean stock keeping unit
         """Extract SKU from JSON product data."""

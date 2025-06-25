@@ -1,16 +1,16 @@
-Date: Wed, 25 Jun 2025 07:02:14 GMT
+Date: Wed, 25 Jun 2025 12:52:23 GMT
 Content-Type: text/html; charset=utf-8
 X-Sorting-Hat-Podid: 188
 X-Sorting-Hat-Shopid: 57860915389
 X-Storefront-Renderer-Rendered: 1
-Set-Cookie: keep_alive=00d37339-a147-4a6a-ba50-1e37659c8bcf; path=/; expires=Wed, 25 Jun 2025 07:32:14 GMT; SameSite=Strict
-Set-Cookie: localization=IN; path=/en-in; expires=Thu, 25 Jun 2026 07:02:14 GMT; SameSite=Lax
-Set-Cookie: cart_currency=INR; path=/; expires=Wed, 09 Jul 2025 07:02:14 GMT; SameSite=Lax
-Set-Cookie: _shopify_y=1a409700-5e1e-4eb1-a26a-6ada719ab09c; domain=carbon38.com; path=/; expires=Thu, 25 Jun 2026 13:02:14 GMT; SameSite=Lax
-Set-Cookie: _shopify_s=df207e11-2119-4a55-a58b-b560ac476449; domain=carbon38.com; path=/; expires=Wed, 25 Jun 2025 07:32:14 GMT; SameSite=Lax
+Set-Cookie: keep_alive=24513705-5056-44cd-bb9c-3b71634cddd8; path=/; expires=Wed, 25 Jun 2025 13:22:23 GMT; SameSite=Strict
+Set-Cookie: localization=IN; path=/en-in; expires=Thu, 25 Jun 2026 12:52:23 GMT; SameSite=Lax
+Set-Cookie: cart_currency=INR; path=/; expires=Wed, 09 Jul 2025 12:52:23 GMT; SameSite=Lax
+Set-Cookie: _shopify_y=cb16a923-e137-4d2a-95e4-56cc679a8e89; domain=carbon38.com; path=/; expires=Thu, 25 Jun 2026 18:52:23 GMT; SameSite=Lax
+Set-Cookie: _shopify_s=b530b764-41c4-4ef8-95c5-9ff36a72d47f; domain=carbon38.com; path=/; expires=Wed, 25 Jun 2025 13:22:23 GMT; SameSite=Lax
 Link: <https://cdn.shopify.com>; rel="preconnect", <https://cdn.shopify.com>; rel="preconnect"; crossorigin, <//carbon38.com/cdn/shop/t/737/assets/component-localization-form.css?v=105748427650083598191750715196>; as="style"; rel="preload", <//carbon38.com/cdn/shop/files/Carbon38-Logo-Final-v2.0_CARBON_blk_e13ae00d-6cee-4971-9f74-f1daa0443eec.png?v=1721768523&width=600>; as="image"; rel="preload"; imagesrcset="//carbon38.com/cdn/shop/files/Carbon38-Logo-Final-v2.0_CARBON_blk_e13ae00d-6cee-4971-9f74-f1daa0443eec.png?v=1721768523&width=230 230w, //carbon38.com/cdn/shop/files/Carbon38-Logo-Final-v2.0_CARBON_blk_e13ae00d-6cee-4971-9f74-f1daa0443eec.png?v=1721768523&width=345 345w, //carbon38.com/cdn/shop/files/Carbon38-Logo-Final-v2.0_CARBON_blk_e13ae00d-6cee-4971-9f74-f1daa0443eec.png?v=1721768523&width=460 460w"; imagesizes="(max-width: 460px) 50vw, 230px"
-Etag: W/"cacheable:1a62e875536ffcca3636cbbc59a05d3d"
-Shopify-Complexity-Score: 3960
+Etag: W/"cacheable:6655bb27217383c255b904cd1eccf6ff"
+Shopify-Complexity-Score: 4220
 X-Frame-Options: DENY
 Content-Security-Policy: block-all-mixed-content; frame-ancestors 'none'; upgrade-insecure-requests;
 Strict-Transport-Security: max-age=7889238
@@ -20,13 +20,13 @@ Vary: Accept
 Vary: accept-encoding
 Content-Language: en-IN
 Powered-By: Shopify
-Server-Timing: processing;dur=400;desc="gc:45", db;dur=118, db_async;dur=1.264, fetch;dur=100, render;dur=228, asn;desc="45609", edge;desc="BOM", country;desc="IN", theme;desc="145302913213", pageType;desc="collection", servedBy;desc="mfcc", requestID;desc="dd94e16c-2109-4f19-af65-b6599aec6041-1750834934"
-Server-Timing: cfRequestDuration;dur=504.999876
+Server-Timing: processing;dur=426;desc="gc:51", db;dur=107, db_async;dur=1.355, fetch;dur=85, render;dur=252, asn;desc="45609", edge;desc="BOM", country;desc="IN", theme;desc="145302913213", pageType;desc="collection", servedBy;desc="g7t5", requestID;desc="a9ae3d81-9cb9-46fe-a70a-6bf2fd34eaf7-1750855943"
+Server-Timing: cfRequestDuration;dur=524.999857
 X-Dc: gcp-asia-southeast1,gcp-asia-southeast1,gcp-asia-southeast1
-X-Request-Id: dd94e16c-2109-4f19-af65-b6599aec6041-1750834934
+X-Request-Id: a9ae3d81-9cb9-46fe-a70a-6bf2fd34eaf7-1750855943
 Alt-Svc: h3=":443"; ma=86400
 Cf-Cache-Status: DYNAMIC
-Report-To: {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=DIlazKc2nFvPFe9PlyGaz%2BrujKSBDr7D9JXc2BlkC%2FP2Uc2N1ADQFlC7tMex462b0rTgEZ7LVUeDrYk4K1zW9CEQ4WK77lHmMtob49SoaQoyCnsMq45t96Kgla8VeQ%3D%3D"}],"group":"cf-nel","max_age":604800}
+Report-To: {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=gu6UZ1lcN%2FfnYBWwxopgqwLAMLdqkqlCEpdDcKevu5DaD3znai%2BwEidJWURyR8lD2zt%2FMH0bR9GXcpor9td32ehc%2B2dDyWHFu6yjchTMHSOA1vEmioa0ismSE%2BZtFA%3D%3D"}],"group":"cf-nel","max_age":604800}
 Nel: {"success_fraction":0.01,"report_to":"cf-nel","max_age":604800}
 X-Xss-Protection: 1; mode=block
 X-Content-Type-Options: nosniff
@@ -34,5 +34,5 @@ X-Permitted-Cross-Domain-Policies: none
 X-Download-Options: noopen
 Shopify-Edge-Ip: 23.227.38.65
 Server: cloudflare
-Cf-Ray: 95529923ca4185c3-BOM
+Cf-Ray: 95549a0d7e9d3c7c-BOM
 Content-Encoding: gzip

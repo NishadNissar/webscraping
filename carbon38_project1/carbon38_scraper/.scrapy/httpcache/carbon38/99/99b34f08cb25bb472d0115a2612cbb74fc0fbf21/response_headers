@@ -1,12 +1,12 @@
 Content-Length: 0
-Date: Wed, 25 Jun 2025 06:58:46 GMT
+Date: Wed, 25 Jun 2025 12:48:37 GMT
 Content-Type: text/html; charset=utf-8
 X-Sorting-Hat-Podid: 188
 X-Sorting-Hat-Shopid: 57860915389
 X-Storefront-Renderer-Rendered: 1
-Set-Cookie: keep_alive=77081e6d-f441-41e4-aa69-7dd9e2c7b2b8; path=/; expires=Wed, 25 Jun 2025 07:28:46 GMT; SameSite=Strict
+Set-Cookie: keep_alive=24513705-5056-44cd-bb9c-3b71634cddd8; path=/; expires=Wed, 25 Jun 2025 13:18:37 GMT; SameSite=Strict
 Location: https://carbon38.com/en-in/collections/outerwear
-Shopify-Complexity-Score: 260
+Shopify-Complexity-Score: 200
 X-Frame-Options: DENY
 Content-Security-Policy: block-all-mixed-content; frame-ancestors 'none'; upgrade-insecure-requests;
 Strict-Transport-Security: max-age=7889238
@@ -15,12 +15,12 @@ X-Shardid: 188
 Vary: Accept
 Alt-Svc: h3=":443"; ma=86400
 Powered-By: Shopify
-Server-Timing: processing;dur=27;desc="gc:8", db;dur=2, db_async;dur=1.308, asn;desc="45609", edge;desc="BOM", country;desc="IN", theme;desc="145302913213", pageType;desc="collection", servedBy;desc="v88q", requestID;desc="00411389-0012-49a1-9ea2-06017efa37d6-1750834726"
-Server-Timing: cfRequestDuration;dur=115.999937
+Server-Timing: processing;dur=21;desc="gc:4", db;dur=2, db_async;dur=1.027, asn;desc="45609", edge;desc="BOM", country;desc="IN", theme;desc="145302913213", pageType;desc="collection", servedBy;desc="fscc", requestID;desc="7d11f069-91d1-4b1e-b9ab-3659ef778626-1750855717"
+Server-Timing: cfRequestDuration;dur=113.999844
 X-Dc: gcp-asia-southeast1,gcp-asia-southeast1,gcp-asia-southeast1
-X-Request-Id: 00411389-0012-49a1-9ea2-06017efa37d6-1750834726
+X-Request-Id: 7d11f069-91d1-4b1e-b9ab-3659ef778626-1750855717
 Cf-Cache-Status: DYNAMIC
-Report-To: {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=xcmFNTbOqDD7awdywao9kiy9Td3CAE3WKqcbX3znrmkPSntLZf4ksVosMiC7gM8ODk63KqIaH%2B%2BSB7Ld5%2FV%2Bia9rXhalt4LmFBZ2xZpZHmCYosPcdRcEqHBhm6YVQw%3D%3D"}],"group":"cf-nel","max_age":604800}
+Report-To: {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=s3E947dqfNwQjctUB3sNIzRYkU45%2F52Dcuv2eEN0mxuPFALnGX%2Bn6nf0bPDQ48%2BVSSYbuWkRJO5afh4nSB870IR8i%2FE55EXpYN5L1rZdBsjEtzUpuFJ9e42%2B52lcKA%3D%3D"}],"group":"cf-nel","max_age":604800}
 Nel: {"success_fraction":0.01,"report_to":"cf-nel","max_age":604800}
 X-Xss-Protection: 1; mode=block
 X-Content-Type-Options: nosniff
@@ -28,4 +28,4 @@ X-Permitted-Cross-Domain-Policies: none
 X-Download-Options: noopen
 Shopify-Edge-Ip: 23.227.38.65
 Server: cloudflare
-Cf-Ray: 9552940deaef85c3-BOM
+Cf-Ray: 9554948bed3b3c7c-BOM
