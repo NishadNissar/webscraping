@@ -289,3 +289,37 @@ class Carbon38Spider(scrapy.Spider):
                     return color_match.group(1)
         
         return None
+    def extract_sizes(self, response):
+        """Extract available sizes."""
+        
+        # Try multiple selectors for sizes
+        sizes = response.css('.product-form__input input[name*="Size"] + label::text').getall() or \
+               response.css('.product-form__input input[name*="size"] + label::text').getall() or \
+               response.css('.size-selector .variant-input__radio + label::text').getall() or \
+               response.css('.product-option-size label::text').getall() or \
+               response.css('[data-size]::text').getall()
+        
+        if sizes:
+            return [s.strip() for s in sizes if s.strip()]
+        
+        # Try to extract from scripts
+        scripts = response.css('script::text').getall()
+        for script in scripts:
+            if 'size' in script.lower():
+                size_matches = re.findall(r'"size":\s*"([^"]+)"', script, re.IGNORECASE)
+                if size_matches:
+                    return list(set(size_matches))  # Remove duplicates
+        
+        return []
+    def extract_breadcrumbs(self, response):
+        """Extract breadcrumbs navigation."""
+        
+        breadcrumbs = response.css('.breadcrumb a::text, .breadcrumb span::text').getall() or \
+                     response.css('nav[aria-label="breadcrumb"] a::text').getall() or \
+                     response.css('.breadcrumbs a::text, .breadcrumbs span::text').getall() or \
+                     response.css('[data-breadcrumb] a::text').getall()
+        
+        if breadcrumbs:
+            return [b.strip() for b in breadcrumbs if b.strip()]
+        
+        return []
