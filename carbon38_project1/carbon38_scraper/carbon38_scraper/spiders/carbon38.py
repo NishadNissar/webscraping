@@ -323,3 +323,16 @@ class Carbon38Spider(scrapy.Spider):
             return [b.strip() for b in breadcrumbs if b.strip()]
         
         return []
+    def extract_primary_image(self, response):
+        """Extract primary product image."""
+        
+        primary_image = response.css('.product__media img::attr(src)').get() or \
+                       response.css('.product-form__media img::attr(src)').get() or \
+                       response.css('img[class*="product"]::attr(src)').get() or \
+                       response.css('.product-photos img::attr(src)').get() or \
+                       response.css('.product-image img::attr(src)').get()
+        
+        if primary_image:
+            return self.clean_image_url(primary_image, response.url)
+        
+        return None
