@@ -1,0 +1,31 @@
+Content-Length: 0
+Date: Wed, 25 Jun 2025 06:58:56 GMT
+Content-Type: text/html; charset=utf-8
+X-Sorting-Hat-Podid: 188
+X-Sorting-Hat-Shopid: 57860915389
+X-Storefront-Renderer-Rendered: 1
+Set-Cookie: keep_alive=77081e6d-f441-41e4-aa69-7dd9e2c7b2b8; path=/; expires=Wed, 25 Jun 2025 07:28:56 GMT; SameSite=Strict
+Location: /en-in/collections/jackets-coats
+Shopify-Complexity-Score: 570
+X-Frame-Options: DENY
+Content-Security-Policy: block-all-mixed-content; frame-ancestors 'none'; upgrade-insecure-requests;
+Strict-Transport-Security: max-age=7889238
+X-Shopid: 57860915389
+X-Shardid: 188
+Vary: Accept
+Alt-Svc: h3=":443"; ma=86400
+Powered-By: Shopify
+Server-Timing: processing;dur=59;desc="gc:12", db;dur=12, db_async;dur=1.388, asn;desc="45609", edge;desc="BOM", country;desc="IN", theme;desc="145302913213", pageType;desc="404", servedBy;desc="d5qj", requestID;desc="0ee6b63c-251b-4ebd-ab53-d00d7c43acb9-1750834736"
+Server-Timing: cfRequestDuration;dur=143.999815
+X-Dc: gcp-asia-southeast1,gcp-asia-southeast1,gcp-asia-southeast1
+X-Request-Id: 0ee6b63c-251b-4ebd-ab53-d00d7c43acb9-1750834736
+Cf-Cache-Status: DYNAMIC
+Report-To: {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=vI47lQV0dQKm64ga6Bjr0hU91Gly7DNilbgKm88JCmHQEAfFLbGJ44MgBwWp5TyNkokvAWYmMC1XR%2FvF4wBDfNZI8J1RPIkriva7ONp8C%2FIsdsp%2FCjEFf3aYJ1t0xg%3D%3D"}],"group":"cf-nel","max_age":604800}
+Nel: {"success_fraction":0.01,"report_to":"cf-nel","max_age":604800}
+X-Xss-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+X-Permitted-Cross-Domain-Policies: none
+X-Download-Options: noopen
+Shopify-Edge-Ip: 23.227.38.65
+Server: cloudflare
+Cf-Ray: 9552944eae5985c3-BOM

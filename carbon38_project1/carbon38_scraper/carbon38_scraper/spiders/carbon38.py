@@ -15,6 +15,12 @@ class Carbon38Spider(scrapy.Spider):
         'https://carbon38.com/collections/outerwear',
         'https://carbon38.com/collections/sports-bras',
         ]
+    fields_to_export = [
+        'product_name', 'brand', 'price', 'sku', 'product_id',
+        'description', 'reviews', 'colour', 'sizes', 'breadcrumbs',
+        'primary_image_url', 'image_urls', 'product_url'
+    ]
+
      #this code is only used to check if the spider is working
     # def parse(self, response):
         
@@ -41,10 +47,10 @@ class Carbon38Spider(scrapy.Spider):
         self.logger.info(f'Parsing listing page: {response.url}')
         product_links = response.css('a[href*="/products/"]::attr(href)').getall()
         self.logger.info(f'Found {len(product_links)} product links on page')
-       # Stop spider if no products are found (end of pagination)
-        if not product_links:
-         self.logger.info("No products found — stopping pagination.")
-         return
+    #    Stop spider if no products are found (end of pagination)
+    #     if not product_links:
+    #      self.logger.info("No products found — stopping pagination.")
+    #      return
         for link in product_links:
             full_url = urljoin(response.url, link)
             yield response.follow(full_url, self.parse_product)

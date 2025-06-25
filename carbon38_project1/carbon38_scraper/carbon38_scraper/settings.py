@@ -27,8 +27,8 @@ USER_AGENT = 'carbon38_scraper (+http://www.yourdomain.com)'
 ITEM_PIPELINES = {
     'carbon38_scraper.pipelines.ProductCleanerPipeline': 100,
     'carbon38_scraper.pipelines.CSVExportPipeline': 200,
-    'carbon38_scraper.pipelines.JSONExportPipeline': 300,
-    'carbon38_scraper.pipelines.DatabasePipeline': 400,
+    'carbon38_scraper.pipelines.JSONExportPipeline': 300
+    # 'carbon38_scraper.pipelines.DatabasePipeline': 400,
 }
 
 # Enable autothrottling

@@ -1,24 +1,31 @@
-import re
 import csv
 import json
-from w3lib.html import remove_tags
+import sqlite3
+import os
+from datetime import datetime
+from itemadapter import ItemAdapter
+
 class ProductCleanerPipeline:
     def process_item(self, item, spider):
-        # Clean brand
-        if item.get('brand'):
-            item['brand'] = item['brand'].strip().title()
-
-        # Clean product name
-        if item.get('product_name'):
-            item['product_name'] = item['product_name'].strip()
-
-        # Clean price (remove symbols like $)
-        if item.get('price'):
-            item['price'] = re.sub(r'[^\d.]', '', item['price'])
-           # Clean description (remove any HTML tags)
-        if item.get('description'):
-            item['description'] = remove_tags(item['description']).strip()
-
+        adapter = ItemAdapter(item)
+        
+        # Clean price - remove currency symbols and convert to float
+        if adapter.get('price'):
+            price = adapter['price'].replace('$', '').replace(',', '')
+            try:
+                adapter['price'] = float(price)
+            except ValueError:
+                adapter['price'] = 0.0
+      # Clean reviews - extract number
+        if adapter.get('reviews'):
+            reviews_text = adapter['reviews']
+            if 'Reviews' in reviews_text:
+                try:
+                    adapter['reviews'] = int(reviews_text.split()[0])
+                except (ValueError, IndexError):
+                    adapter['reviews'] = 0
+            else:
+                adapter['reviews'] = 0
         # Extract just the number from review text
         if item.get('reviews'):
             match = re.search(r'\d+', item['reviews'])

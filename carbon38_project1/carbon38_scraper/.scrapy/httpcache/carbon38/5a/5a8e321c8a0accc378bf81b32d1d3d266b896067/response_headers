@@ -1,0 +1,31 @@
+Content-Length: 0
+Date: Wed, 25 Jun 2025 06:58:38 GMT
+Content-Type: text/html; charset=utf-8
+X-Sorting-Hat-Podid: 188
+X-Sorting-Hat-Shopid: 57860915389
+X-Storefront-Renderer-Rendered: 1
+Set-Cookie: keep_alive=68110dae-dcba-4760-8172-afee4d891204; path=/; expires=Wed, 25 Jun 2025 07:28:38 GMT; SameSite=Strict
+Location: https://carbon38.com/en-in/collections/tops
+Shopify-Complexity-Score: 290
+X-Frame-Options: DENY
+Content-Security-Policy: block-all-mixed-content; frame-ancestors 'none'; upgrade-insecure-requests;
+Strict-Transport-Security: max-age=7889238
+X-Shopid: 57860915389
+X-Shardid: 188
+Vary: Accept
+Alt-Svc: h3=":443"; ma=86400
+Powered-By: Shopify
+Server-Timing: processing;dur=30;desc="gc:7", db;dur=2, db_async;dur=1.487, asn;desc="45609", edge;desc="BOM", country;desc="IN", theme;desc="145302913213", pageType;desc="collection", servedBy;desc="c8zl", requestID;desc="e55e1575-1dbc-4d1e-936c-34f0314cd9da-1750834718"
+Server-Timing: cfRequestDuration;dur=125.999928
+X-Dc: gcp-asia-southeast1,gcp-asia-southeast1,gcp-asia-southeast1
+X-Request-Id: e55e1575-1dbc-4d1e-936c-34f0314cd9da-1750834718
+Cf-Cache-Status: DYNAMIC
+Report-To: {"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=wSb4uInWdEbQdtlxoQ9FUBMXiG7RC0SmVXXBIDBWoX4DB5W3LZoTNtnHAu29bg9%2Bh8n0McQoeTTySpCEwlwfogNpkgvzhgOlmiVfRfqA3wm7lxaXehGWmPursTNGQw%3D%3D"}],"group":"cf-nel","max_age":604800}
+Nel: {"success_fraction":0.01,"report_to":"cf-nel","max_age":604800}
+X-Xss-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+X-Permitted-Cross-Domain-Policies: none
+X-Download-Options: noopen
+Shopify-Edge-Ip: 23.227.38.65
+Server: cloudflare
+Cf-Ray: 955293dd8b3085c3-BOM
