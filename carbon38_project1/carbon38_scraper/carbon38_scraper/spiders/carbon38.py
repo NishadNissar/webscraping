@@ -352,3 +352,16 @@ class Carbon38Spider(scrapy.Spider):
                     processed_images.append(clean_url)
         
         return processed_images
+    def clean_image_url(self, img_url, base_url):
+        """Clean and normalize image URLs."""
+        if not img_url:
+            return None
+            
+        if img_url.startswith('//'):
+            return 'https:' + img_url
+        elif img_url.startswith('/'):
+            return urljoin(base_url, img_url)
+        elif img_url.startswith('http'):
+            return img_url
+        else:
+            return urljoin(base_url, img_url)
