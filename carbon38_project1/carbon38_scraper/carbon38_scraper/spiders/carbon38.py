@@ -213,48 +213,79 @@ class Carbon38Spider(scrapy.Spider):
             return self.extract_brand_from_breadcrumbs(breadcrumbs)
         
         return None
-    def extract_sku_from_json(self, response):  #sku mean stock keeping unit
-        """Extract SKU from JSON product data."""
+    def extract_description(self, response):
+        """Extract product description with multiple approaches."""
         
+        # Try getting paragraphs first
+        description_parts = response.css('.product__description p::text').getall() or \
+                           response.css('.product-single__description p::text').getall() or \
+                           response.css('.rte p::text').getall() or \
+                           response.css('.product-description p::text').getall()
+        
+        if description_parts:
+            return ' '.join(part.strip() for part in description_parts if part.strip())
+        
+        # Try getting full text content
+        description = self.extract_text_with_fallbacks(response, [
+            '.product__description::text',
+            '.product-single__description::text',
+            '.product-description::text',
+            '.rte::text',
+            '[data-description]::text'
+        ])
+        
+        if description:
+            return description
+        
+        # Try meta description as fallback
+        meta_desc = response.css('meta[name="description"]::attr(content)').get()
+        return meta_desc if meta_desc else None
+
+    def extract_reviews(self, response):
+        """Extract review count and rating."""
+        
+        reviews_text = self.extract_text_with_fallbacks(response, [
+            '.reviews-summary::text',
+            '[data-reviews-count]::text',
+            '.product-reviews__summary::text',
+            '.reviews-count::text',
+            '.review-count::text'
+        ])
+        
+        if reviews_text:
+            return reviews_text
+        
+        # Try to find review count in scripts
         scripts = response.css('script::text').getall()
         for script in scripts:
-            # Look for product JSON data
-            if 'sku' in script.lower():
-                try:
-                    # Try to find SKU in various JSON patterns
-                    sku_match = re.search(r'"sku":\s*"([^"]+)"', script)
-                    if sku_match:
-                        return sku_match.group(1)
-                except:
-                    continue
-        return None
-    def extract_product_id(self, response):
-        """Extract product ID from various sources."""
+            if 'review' in script.lower():
+                review_match = re.search(r'"review_count":\s*(\d+)', script)
+                if review_match:
+                    return f"{review_match.group(1)} Reviews"
         
-        # Try to get from URL
-        url_parts = response.url.split('/')
-        if url_parts and 'products' in url_parts:
-            product_index = url_parts.index('products')
-            if product_index + 1 < len(url_parts):
-                product_slug = url_parts[product_index + 1]
-                # Extract any trailing numbers
-                id_match = re.search(r'(\d+)$', product_slug)
-                if id_match:
-                    return id_match.group(1)
-                return product_slug
-        # Try to get from page data
-        product_id = response.css('[data-product-id]::attr(data-product-id)').get()
-        if product_id:
-            return product_id
+        return "0 Reviews"
+    def extract_colour(self, response):
+        """Extract color/colour information."""
         
-        # Try to extract from script tags (Shopify product JSON)
+        # Try multiple approaches for color
+        color = self.extract_text_with_fallbacks(response, [
+            '.product-form__input input[name*="Color"] + label::text',
+            '.product-form__input input[name*="color"] + label::text',
+            '.color-swatch.selected::attr(data-value)',
+            '.variant-input__color.selected::text',
+            '[data-color]::attr(data-color)',
+            '.product-option-color .selected::text'
+        ])
+        
+        if color:
+            return color
+        
+        # Try to extract from variant data
         scripts = response.css('script::text').getall()
         for script in scripts:
-            # Look for Shopify product ID
-            id_match = re.search(r'"product_id":\s*(\d+)', script) or \
-                      re.search(r'"id":\s*(\d+)', script)
-            if id_match:
-                return id_match.group(1)
+            if 'color' in script.lower() or 'colour' in script.lower():
+                color_match = re.search(r'"color":\s*"([^"]+)"', script, re.IGNORECASE)
+                if color_match:
+                    return color_match.group(1)
         
         return None
-    
